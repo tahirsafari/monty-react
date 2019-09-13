@@ -1,2 +1,2 @@
-#monty-react
-Monty front end in react
+# monty-react
+Monty front end in react uses spring boot backend.
