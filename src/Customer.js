@@ -7,6 +7,7 @@ class Customer extends Component {
   state = {
     isAuthenticated: false,
     customers: [],
+    apiBasePoint: 'http://localhost:8080/customer/',
     newCustomerData: {
       firstName: '',
       lastName: '',
@@ -16,7 +17,7 @@ class Customer extends Component {
       province: '',
       notes: ''
     },
-    editBookData: {
+    editCustomerData: {
       id: '',
       firstName: '',
       lastName: '',
@@ -26,11 +27,11 @@ class Customer extends Component {
       province: '',
       notes: ''
     },
-    newBookModal: false,
-    editBookModal: false
+    newCustomerModal: false,
+    editCustomerModal: false
   }
   componentWillMount() {
-    this._refreshBooks();
+    this._refreshCustomers();
     console.log(localStorage.jwtToken)
     if(localStorage.jwtToken){
         this.setState({isAuthenticated: true});
@@ -38,21 +39,21 @@ class Customer extends Component {
   }
   toggleNewCustomerModal() {
     this.setState({
-      newBookModal: ! this.state.newBookModal
+      newCustomerModal: ! this.state.newCustomerModal
     });
   }
   toggleEditCustomerModal() {
     this.setState({
-      editBookModal: ! this.state.editBookModal
+      editCustomerModal: ! this.state.editCustomerModal
     });
   }
   addCustomer() {
-    axios.post('http://localhost:8080/customer/add', this.state.newCustomerData, { headers: {"Authorization" : `Bearer `+localStorage.getItem('jwtToken')}}).then((response) => {
+    axios.post(this.state.apiBasePoint+'add', this.state.newCustomerData, { headers: {"Authorization" : `Bearer `+localStorage.getItem('jwtToken')}}).then((response) => {
       let { customers } = this.state;
 
       customers.push(response.data);
 
-      this.setState({ customers, newBookModal: false, newCustomerData: {
+      this.setState({ customers, newCustomerModal: false, newCustomerData: {
         firstName: '',
         lastName: '',
         email: '',
@@ -63,31 +64,31 @@ class Customer extends Component {
       }});
     });
   }
-  updateBook() {
-    let { id, firstName, lastName, country, province, email, mobileNumber } = this.state.editBookData;
+  updateCustomer() {
+    let { id, firstName, lastName, country, province, email, mobileNumber } = this.state.editCustomerData;
 
-    axios.put('http://localhost:8080/customer/update', {
+    axios.put(this.state.apiBasePoint+'update', {
       id, firstName, lastName, country, province, email, mobileNumber
     }, { headers: {"Authorization" : `Bearer `+localStorage.getItem('jwtToken')} }).then((response) => {
-      this._refreshBooks();
+      this._refreshCustomers();
 
       this.setState({
-        editBookModal: false, editBookData: { id: '', firstName: '', lastName: '', country:'', province: '' }
+        editCustomerModal: false, editCustomerData: { id: '', firstName: '', lastName: '', country:'', province: '' }
       })
     });
   }
-  editBook(id, firstName, lastName, country, province) {
+  editCustomer(id, firstName, lastName, country, province, email, mobileNumber) {
     this.setState({
-      editBookData: { id, firstName, lastName, country, province }, editBookModal: ! this.state.editBookModal
+      editCustomerData: { id, firstName, lastName, country, province , email, mobileNumber}, editCustomerModal: ! this.state.editCustomerModal
     });
   }
   deleteCustomer(id) {
-    axios.delete('http://localhost:8080/customer/delete/' + id, { headers: {"Authorization" : `Bearer `+localStorage.getItem('jwtToken')}}).then((response) => {
-      this._refreshBooks();
+    axios.delete(this.state.apiBasePoint+'delete/' + id, { headers: {"Authorization" : `Bearer `+localStorage.getItem('jwtToken')}}).then((response) => {
+      this._refreshCustomers();
     });
   }
-  _refreshBooks() {
-    axios.get('http://localhost:8080/customer/all', { headers: {"Authorization" : `Bearer `+localStorage.getItem('jwtToken')} }).then((response) => {
+  _refreshCustomers() {
+    axios.get(this.state.apiBasePoint+'all', { headers: {"Authorization" : `Bearer `+localStorage.getItem('jwtToken')} }).then((response) => {
       this.setState({
         customers: response.data
       })
@@ -108,7 +109,7 @@ class Customer extends Component {
           <td>{customer.country}</td>
           <td>{customer.province}</td>
           <td>
-            <Button color="success" size="sm" className="mr-2" onClick={this.editBook.bind(this, customer.id, customer.firstName, customer.lastName, customer.country, customer.province)}>Edit</Button>
+            <Button color="success" size="sm" className="mr-2" onClick={this.editCustomer.bind(this, customer.id, customer.firstName, customer.lastName, customer.country, customer.province, customer.email, customer.mobileNumber)}>Edit</Button>
             <Button color="danger" size="sm" onClick={this.deleteCustomer.bind(this, customer.id)}>Delete</Button>
           </td>
         </tr>
@@ -121,7 +122,7 @@ class Customer extends Component {
 
       <Button className="my-3" color="primary" onClick={this.toggleNewCustomerModal.bind(this)}>Add Customer</Button>
 
-      <Modal isOpen={this.state.newBookModal} toggle={this.toggleNewCustomerModal.bind(this)}>
+      <Modal isOpen={this.state.newCustomerModal} toggle={this.toggleNewCustomerModal.bind(this)}>
         <ModalHeader toggle={this.toggleNewCustomerModal.bind(this)}>Add a new customer</ModalHeader>
         <ModalBody>
           <FormGroup>
@@ -193,80 +194,80 @@ class Customer extends Component {
         </ModalFooter>
       </Modal>
 
-      <Modal isOpen={this.state.editBookModal} toggle={this.toggleEditCustomerModal.bind(this)}>
+      <Modal isOpen={this.state.editCustomerModal} toggle={this.toggleEditCustomerModal.bind(this)}>
         <ModalHeader toggle={this.toggleEditCustomerModal.bind(this)}>Edit Customer</ModalHeader>
         <ModalBody>
-          <Input id="id" type="hidden" value={this.state.editBookData.id} onChange={(e) => {
-              let { editBookData } = this.state;
+          <Input id="id" type="hidden" value={this.state.editCustomerData.id} onChange={(e) => {
+              let { editCustomerData } = this.state;
 
-              editBookData.id = e.target.value;
+              editCustomerData.id = e.target.value;
 
-              this.setState({ editBookData });
+              this.setState({ editCustomerData });
             }} />
           <FormGroup>
             <Label for="title">First Name</Label>
-            <Input id="title" value={this.state.editBookData.firstName} onChange={(e) => {
-              let { editBookData } = this.state;
+            <Input id="title" value={this.state.editCustomerData.firstName} onChange={(e) => {
+              let { editCustomerData } = this.state;
 
-              editBookData.firstName = e.target.value;
+              editCustomerData.firstName = e.target.value;
 
-              this.setState({ editBookData });
+              this.setState({ editCustomerData });
             }} />
           </FormGroup>
           <FormGroup>
             <Label for="rating">Last Name</Label>
-            <Input id="lastName" value={this.state.editBookData.lastName} onChange={(e) => {
-              let { editBookData } = this.state;
+            <Input id="lastName" value={this.state.editCustomerData.lastName} onChange={(e) => {
+              let { editCustomerData } = this.state;
 
-              editBookData.lastName = e.target.value;
+              editCustomerData.lastName = e.target.value;
 
-              this.setState({ editBookData });
+              this.setState({ editCustomerData });
             }} />
           </FormGroup>
           <FormGroup>
             <Label for="rating">Email</Label>
-            <Input id="email" value={this.state.editBookData.email} onChange={(e) => {
-              let { editBookData } = this.state;
+            <Input id="email" value={this.state.editCustomerData.email} onChange={(e) => {
+              let { editCustomerData } = this.state;
 
-              editBookData.email = e.target.value;
+              editCustomerData.email = e.target.value;
 
-              this.setState({ editBookData });
+              this.setState({ editCustomerData });
             }} />
           </FormGroup>
           <FormGroup>
             <Label for="rating">Mobile Number</Label>
-            <Input id="mobileNumber" value={this.state.editBookData.mobileNumber} onChange={(e) => {
-              let { editBookData } = this.state;
+            <Input id="mobileNumber" value={this.state.editCustomerData.mobileNumber} onChange={(e) => {
+              let { editCustomerData } = this.state;
 
-              editBookData.mobileNumber = e.target.value;
+              editCustomerData.mobileNumber = e.target.value;
 
-              this.setState({ editBookData });
+              this.setState({ editCustomerData });
             }} />
           </FormGroup>
           <FormGroup>
             <Label for="rating">Country</Label>
-            <Input id="rating" value={this.state.editBookData.country} onChange={(e) => {
-              let { editBookData } = this.state;
+            <Input id="rating" value={this.state.editCustomerData.country} onChange={(e) => {
+              let { editCustomerData } = this.state;
 
-              editBookData.country = e.target.value;
+              editCustomerData.country = e.target.value;
 
-              this.setState({ editBookData });
+              this.setState({ editCustomerData });
             }} />
           </FormGroup>
           <FormGroup>
             <Label for="rating">Country</Label>
-            <Input id="rating" value={this.state.editBookData.province} onChange={(e) => {
-              let { editBookData } = this.state;
+            <Input id="rating" value={this.state.editCustomerData.province} onChange={(e) => {
+              let { editCustomerData } = this.state;
 
-              editBookData.province = e.target.value;
+              editCustomerData.province = e.target.value;
 
-              this.setState({ editBookData });
+              this.setState({ editCustomerData });
             }} />
           </FormGroup>
 
         </ModalBody>
         <ModalFooter>
-          <Button color="primary" onClick={this.updateBook.bind(this)}>Update</Button>{' '}
+          <Button color="primary" onClick={this.updateCustomer.bind(this)}>Update</Button>{' '}
           <Button color="secondary" onClick={this.toggleEditCustomerModal.bind(this)}>Cancel</Button>
         </ModalFooter>
       </Modal>
